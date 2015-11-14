@@ -14,7 +14,7 @@ public protocol CalendarViewDelegate {
   func calendarDidPageToDate(date: Moment)
 }
 
-public class CalendarView: UIView {
+public class CalendarView: UIControl {
 
   private struct Appearance {
     static var dayBackgroundColor = UIColor.clearColor()
@@ -76,11 +76,8 @@ public class CalendarView: UIView {
     self.addSubview(cv)
     return cv
   }()
-  public var delegate: CalendarViewDelegate? {
-    didSet {
-      delegate?.calendarDidPageToDate(contentView.currentMonth().date)
-    }
-  }
+  public var delegate: CalendarViewDelegate?
+  
   public var selectedDayOnPaged: Int? = 1
 
   required public init?(coder aDecoder: NSCoder) {
@@ -99,21 +96,15 @@ public class CalendarView: UIView {
   }
 
   func setup() {
-    if let date = contentView.selectedDate {
-      contentView.selectVisibleDate(date.day)
-      delegate?.calendarDidSelectDate(moment(date)) // FIXME: delegate should only be called as a result of user action
-      contentView.selectedDate = nil
-    }
-
-    // add target
-    for month in contentView.months {
-        for week in month.weeks {
-            for day in week.days {
-                day.addTarget(self, action:"dateSelected:", forControlEvents: .TouchUpInside)
-            }
-        }
-    }
     
+    // add target to day views
+    for month in contentView.months {
+      for week in month.weeks {
+        for day in week.days {
+            day.addTarget(self, action:"dateSelected:", forControlEvents: .TouchUpInside)
+        }
+      }
+    }
     
   }
 
@@ -129,7 +120,15 @@ public class CalendarView: UIView {
   }
 
   public func selectDate(date: Moment) {
-    contentView.selectDate(date)
+    let currentDate = contentView.selectedDate
+    if (currentDate != date) {
+      contentView.selectedDate = date
+      self.sendActionsForControlEvents(.ValueChanged)
+    }
+  }
+    
+  public func selectedDate() -> Moment {
+    return contentView.selectedDate
   }
 
 }
@@ -147,18 +146,16 @@ extension CalendarView: UIScrollViewDelegate {
 
   public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
     contentView.setContentOffset(CGPointMake(CGRectGetWidth(contentView.frame), contentView.contentOffset.y), animated: true)
-    delegate?.calendarDidPageToDate(contentView.currentMonth().date)
-    //dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
-      if let day = self.selectedDayOnPaged {
-        //let dayView =
-        self.contentView.selectVisibleDate(day)
-        //dispatch_async(dispatch_get_main_queue()) {
-        //  if let view = dayView {
-        //    view.selected = true
-        //  }
-        //}
-      }
-    //}
+    
+    var date = self.contentView.currentMonth().date
+    
+    if let day = self.selectedDayOnPaged {
+      date = date.startOf(.Months).add(day-1, .Days)
+    }
+    
+    self.selectDate(date)
+    delegate?.calendarDidPageToDate(date)
+    
   }
 
 }

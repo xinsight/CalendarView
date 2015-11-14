@@ -24,8 +24,14 @@ class ViewController: UIViewController {
     super.viewDidLoad()
     date = moment()
     calendar.delegate = self
+    calendar.addTarget(self, action: "calendarChanged:", forControlEvents: .ValueChanged)
   }
-
+  
+  func calendarChanged(calendar:CalendarView) {
+    let date = calendar.selectedDate()
+    NSLog("calendar changed: \(date)")
+  }
+  
 }
 
 extension ViewController: CalendarViewDelegate {

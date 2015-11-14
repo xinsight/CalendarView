@@ -14,7 +14,12 @@ class ContentView: UIScrollView {
   let numMonthsLoaded = 3
   let currentPage = 1
   var months: [MonthView] = []
-  var selectedDate: Moment?
+    var selectedDate: Moment = moment() {
+        didSet {
+            selectVisibleDate(selectedDate.day)
+            setNeedsLayout()
+        }
+    }
   var paged = false
 
   required init?(coder aDecoder: NSCoder) {
@@ -33,8 +38,7 @@ class ContentView: UIScrollView {
     showsVerticalScrollIndicator = false
 
     months = []
-    let date = selectedDate ?? moment()
-    selectedDate = date
+    let date = selectedDate
     var currentDate = date.substract(1, .Months)
     for _ in 1...numMonthsLoaded {
       let month = MonthView(frame: CGRectZero)
@@ -43,6 +47,8 @@ class ContentView: UIScrollView {
       months.append(month)
       currentDate = currentDate.add(1, .Months)
     }
+    
+    selectedDate = moment() // default to current date
   }
 
   override func layoutSubviews() {
@@ -104,16 +110,8 @@ class ContentView: UIScrollView {
         months = [page2, page3, page1]
       }
       contentOffset.x = CGRectGetWidth(frame)
-      selectedDate = nil
       paged = true
     }
-  }
-
-  func selectDate(date: Moment) {
-    selectedDate = date
-//    setup()
-    selectVisibleDate(date.day)
-    setNeedsLayout()
   }
 
   func selectVisibleDate(date: Int) -> DayView? {
