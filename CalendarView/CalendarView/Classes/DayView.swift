@@ -9,9 +9,7 @@
 import UIKit
 import SwiftMoment
 
-let CalendarSelectedDayNotification = "CalendarSelectedDayNotification"
-
-class DayView: UIView {
+class DayView: UIControl {
 
   var date: Moment! {
     didSet {
@@ -28,24 +26,14 @@ class DayView: UIView {
   }()
   var isToday: Bool = false
   var isOtherMonth: Bool = false
-  var selected: Bool = false {
+  override var selected: Bool {
     didSet {
-      if selected {
-        NSNotificationCenter.defaultCenter()
-          .postNotificationName(CalendarSelectedDayNotification, object: date.toNSDate())
-      }
       updateView()
     }
   }
 
   init() {
     super.init(frame: CGRectZero)
-    let tap = UITapGestureRecognizer(target: self, action: "select")
-    addGestureRecognizer(tap)
-    NSNotificationCenter.defaultCenter().addObserver(self,
-      selector: "onSelected:",
-      name: CalendarSelectedDayNotification,
-      object: nil)
   }
 
   required init?(coder aDecoder: NSCoder) {
@@ -62,15 +50,6 @@ class DayView: UIView {
     updateView()
   }
 
-  func onSelected(notification: NSNotification) {
-    if let date = date, nsDate = notification.object as? NSDate {
-      let mo = moment(nsDate)
-      if mo.month != date.month || mo.day != date.day {
-        selected = false
-      }
-    }
-  }
-
   func updateView() {
     if self.selected {
       dateLabel.textColor = CalendarView.daySelectedTextColor
@@ -85,10 +64,6 @@ class DayView: UIView {
       self.dateLabel.textColor = CalendarView.dayTextColor
       self.dateLabel.backgroundColor = CalendarView.dayBackgroundColor
     }
-  }
-
-  func select() {
-    selected = true
   }
 
 }

@@ -60,13 +60,6 @@ class MonthView: UIView {
     }
   }
 
-  func setdown() {
-    for week in weeks {
-      week.setdown()
-      week.removeFromSuperview()
-    }
-  }
-
   override func layoutSubviews() {
     super.layoutSubviews()
     var x: CGFloat = 0

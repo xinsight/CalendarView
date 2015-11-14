@@ -98,21 +98,23 @@ public class CalendarView: UIView {
     setup()
   }
 
-  override public func willMoveToWindow(newWindow: UIWindow?) {
-    if newWindow == nil {
-      NSNotificationCenter.defaultCenter().removeObserver(self)
-      contentView.removeObservers()
-    } else {
-      NSNotificationCenter.defaultCenter().addObserver(self, selector: "dateSelected:", name: CalendarSelectedDayNotification, object: nil)
-    }
-  }
-
   func setup() {
     if let date = contentView.selectedDate {
       contentView.selectVisibleDate(date.day)
-      delegate?.calendarDidSelectDate(moment(date))
+      delegate?.calendarDidSelectDate(moment(date)) // FIXME: delegate should only be called as a result of user action
       contentView.selectedDate = nil
     }
+
+    // add target
+    for month in contentView.months {
+        for week in month.weeks {
+            for day in week.days {
+                day.addTarget(self, action:"dateSelected:", forControlEvents: .TouchUpInside)
+            }
+        }
+    }
+    
+    
   }
 
   override public func layoutSubviews() {
@@ -121,10 +123,9 @@ public class CalendarView: UIView {
     contentView.contentOffset.x = CGRectGetWidth(contentView.frame)
   }
 
-  func dateSelected(notification: NSNotification) {
-    if let date = notification.object as? NSDate {
-      delegate?.calendarDidSelectDate(moment(date))
-    }
+  func dateSelected(dayView:DayView) {
+    selectDate(dayView.date)
+    delegate?.calendarDidSelectDate(moment(dayView.date))
   }
 
   public func selectDate(date: Moment) {
@@ -147,16 +148,17 @@ extension CalendarView: UIScrollViewDelegate {
   public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
     contentView.setContentOffset(CGPointMake(CGRectGetWidth(contentView.frame), contentView.contentOffset.y), animated: true)
     delegate?.calendarDidPageToDate(contentView.currentMonth().date)
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
+    //dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0)) {
       if let day = self.selectedDayOnPaged {
-        let dayView = self.contentView.selectVisibleDate(day)
-        dispatch_async(dispatch_get_main_queue()) {
-          if let view = dayView {
-            view.selected = true
-          }
-        }
+        //let dayView =
+        self.contentView.selectVisibleDate(day)
+        //dispatch_async(dispatch_get_main_queue()) {
+        //  if let view = dayView {
+        //    view.selected = true
+        //  }
+        //}
       }
-    }
+    //}
   }
 
 }

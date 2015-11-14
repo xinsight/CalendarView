@@ -38,13 +38,6 @@ class WeekView: UIView {
     }
   }
 
-  func setdown() {
-    for day in days {
-      NSNotificationCenter.defaultCenter().removeObserver(day)
-      day.removeFromSuperview()
-    }
-  }
-
   override func layoutSubviews() {
     super.layoutSubviews()
     var x: CGFloat = 0
